@@ -6,6 +6,7 @@ use Codecourse\Notify\Storage\Session;
 
 class Notifier
 {
+    //TESTE
     /**
      * Session storage.
      *
