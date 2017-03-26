@@ -6,13 +6,14 @@ use Codecourse\Notify\Storage\Session;
 
 class Notifier
 {
-    //TESTE
     /**
      * Session storage.
      *
      * @var Codecourse\Storage\Session
      */
     protected $session;
+
+    protected $static_messages = array();
 
     public function __construct(Session $session)
     {
@@ -30,11 +31,41 @@ class Notifier
      */
     public function flash($message, $type = null, array $options = [])
     {
-        $this->session->flash([
-            'notify.message' => $message,
-            'notify.type' => $type,
-            'notify.options' => json_encode($options),
-        ]);
+        $messages = $this->get();
+
+        $messages[] = array(
+            'message' => $message,
+            'type' => $type,
+            'options' => json_encode($options),
+        );
+
+        $this->session->flash('notify', $messages);
+
+        // $this->session->flash([
+        //     'notify.message' => $message,
+        //     'notify.type' => $type,
+        //     'notify.options' => json_encode($options),
+        // ]);
+    }
+
+    public function success($message, array $options = [])
+    {
+        $this->flash($message, 'success', $options);
+    }
+
+    public function alert($message, array $options = [])
+    {
+        $this->flash($message, 'alert', $options);
+    }
+
+    public function info($message, array $options = [])
+    {
+        $this->flash($message, 'info', $options);
+    }
+
+    public function error($message, array $options = [])
+    {
+        $this->flash($message, 'error', $options);
     }
     
     /**
@@ -43,13 +74,9 @@ class Notifier
      * @param  boolean $array
      * @return array
      */
-    public function get($array = false)
+    public function get()
     {
-        return [
-            'message' => $this->message(),
-            'type' => $this->type(),
-            'options' => $this->options($array),
-        ];
+        return $this->session->get('notify');
     }
 
     /**
@@ -59,48 +86,35 @@ class Notifier
      */
     public function ready()
     {
-        return $this->message();
+        return $this->session->get('notify');
     }
 
-    /**
-     * Get the stored message.
-     *
-     * @return string
-     */
-    public function message()
+    public function addStatic($message, $type = null, $options = [])
     {
-        return $this->session->get('notify.message');
+        // dd('oi');
+        $messages = $this->static_messages;
+
+        $messages[] = array(
+            'message' => $message,
+            'type' => $type,
+            'options' => json_encode($options),
+        );
+
+        $this->static_messages = $messages;
     }
 
-    /**
-     * Get the stored type.
-     *
-     * @return string
-     */
-    public function type()
+    public function addSuccessStatic($message)
     {
-        return $this->session->get('notify.type');
+
     }
 
-    /**
-     * Get an additional stored options.
-     *
-     * @param  boolean $array
-     * @return mixed
-     */
-    public function options($array = false)
+    public function getStatic()
     {
-        return json_decode($this->session->get('notify.options'), $array);
+        return $this->static_messages;
     }
 
-    /**
-     * Get a stored option.
-     *
-     * @param  string $key
-     * @return string
-     */
-    public function option($key, $default = null)
+    public function readyStatic()
     {
-        return array_get($this->options(true), $key, $default);
+        return $this->static_messages;
     }
 }
